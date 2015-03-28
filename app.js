@@ -1,8 +1,17 @@
 var express = require('express');
 
 var mongoose = require('mongoose'); 
+var passport = require('passport'); 
+
 require('./models/Posts');
 require('./models/Comments');
+require('./models/Users'); 
+require('./config/passport'); 
+mongoose.connect('mongodb://localhost/news');
+
+require('./models/Test');
+
+
 
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -15,10 +24,7 @@ var users = require('./routes/users');
 
 var app = express();
 
-
-
-
-mongoose.connect('mongodb://localhost/news');
+app.use(passport.initialize()); 
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
