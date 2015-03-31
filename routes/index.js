@@ -12,6 +12,7 @@ var User = mongoose.model('User');
 var auth = jwt({secret: 'SECRET', userProperty: 'payload'});
 
 
+
 // view all posts - GET /posts 
 router.get('/posts', function(req, res, next) {
   // returns an array of posts 
@@ -19,6 +20,21 @@ router.get('/posts', function(req, res, next) {
     if(err){ return next(err); }
     res.json(posts);
   });
+});
+
+// return all posts in this category 
+router.get('/posts/category/:categories', function(req, res, next) {
+  // returns an array of posts 
+
+  userCategories = req.params.categories.split('|');
+
+  console.log("getting all posts in categories: " + userCategories); 
+
+  Post.find({ categories: { $in : userCategories } }, function(err, posts){
+    if(err){ return next(err); }
+    res.json(posts);
+  });
+
 });
 
 // add a new post - POST /posts 
@@ -167,6 +183,12 @@ router.param('user', function(req, res, next, username) {
 router.get('/users/:user', function(req, res) {
   res.json(req.user);
 });
+
+router.get('/users/:user/categories', function(req, res, next) {
+  User.findOne({ 'username' : req.user.username }, function(err, user) {
+    res.json(user.categories); 
+  });
+}); 
 
 /* GET home page. */
 router.get('/', function(req, res, next) {

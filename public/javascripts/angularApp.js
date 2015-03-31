@@ -1,4 +1,14 @@
-var app = angular.module('flapperNews', ['ui.router']);
+var app = angular.module('eleshare', ['ui.router']);
+// var util = require('./util'); 
+
+// TODO: do this a better way
+gCategories = [
+          'Technology', 
+          'Travel', 
+          'Science', 
+          'Art', 
+          'News'
+        ]
 
 app.config([
     '$stateProvider',
@@ -67,17 +77,41 @@ app.config([
 }]);
 
 // service 
-app.factory('posts', ['$http', 'auth', function($http, auth) {
+app.factory('posts', ['$http', 'auth', 'users', function($http, auth, users) {
 
   var o = {
     posts: []
   };
 
   o.getAll = function() {
-    return $http.get('/posts').success(function(data){
-      angular.copy(data, o.posts);
-      // console.log("data", data);
+    username = auth.currentUser(); 
+
+    filteredPosts = []; 
+
+    // get user categories 
+    $http.get('/users/' + username + '/categories').success(function(data) {
+      //console.log("user categories: ", data); 
+
+      categoriesStr = ""; 
+
+      for (i in data) {
+        categoriesStr += data[i]
+        if (i < data.length - 1) categoriesStr += '|'; 
+      }
+
+      $http.get('/posts/category/' + categoriesStr).success(function(data){
+        angular.copy(data, o.posts);
+        // filteredPosts = filteredPosts.concat(data); 
+        // angular.copy(filteredPosts, o.posts);
+      });
+  
     });
+
+  filteredPosts = filteredPosts.filter(function(elem, pos) {
+    return filteredPosts.indexOf(elem) == pos;
+  }); 
+  // angular.copy(filteredPosts, o.posts);
+
   };
 
   o.create = function(post) {
@@ -129,12 +163,33 @@ function($scope, posts, auth){
     // $scope.test = 'Hello world!';
     $scope.isLoggedIn = auth.isLoggedIn; 
     $scope.posts = posts.posts; 
+    $scope.categories = [
+          'Technology', 
+          'Travel', 
+          'Science', 
+          'Art', 
+          'News'
+        ]
+
+    // $scope.checkedCategories = []; 
 
     $scope.addPost = function() {
-      if (!$scope.title || $scope.title === '') { return; }
+      if (!$scope.title || $scope.title === '' || !$scope.checkedCategories) { return; }
+
+      console.log($scope.checkedCategories);
+
+      var postCategories = []; 
+      for (var category in $scope.checkedCategories) {
+        if ($scope.checkedCategories[category]) {
+            postCategories.push(category);
+        }
+      }
+
+      
       posts.create({
         title: $scope.title,
         link: $scope.link,
+        categories: postCategories
       });
       $scope.title = ''; 
       $scope.link = ''; 
@@ -154,6 +209,7 @@ app.controller('PostsCtrl', [
     function($scope, posts, post, auth){
         $scope.isLoggedIn = auth.isLoggedIn; 
         $scope.post = post; 
+        $scope.categories = gCategories;
 
         $scope.addComment = function() {
             if ($scope.body === '') { return; }
@@ -199,7 +255,6 @@ app.factory('auth', ['$http', '$window', function($http, $window){
       if(auth.isLoggedIn()){
         var token = auth.getToken();
         var payload = JSON.parse($window.atob(token.split('.')[1]));
-
         return payload.username;
       }
     };
@@ -238,6 +293,7 @@ app.controller('AuthCtrl', [
           'Art', 
           'News'
         ]
+
 
         $scope.register = function(){
             console.log("AuthCtrl user: ", $scope.user); 

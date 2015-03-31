@@ -2,11 +2,21 @@ var mongoose = require('mongoose');
 var crypto = require('crypto'); 
 var jwt = require('jsonwebtoken'); 
 
+var userPost = new mongoose.Schema({
+  title: String,
+  link: String,
+  author: String, 
+  upvotes: {type: Number, default: 0},
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+  categories: [String]
+});
+
 var UserSchema = new mongoose.Schema({
     username: {type: String, lowercase: true, unique: true}, 
     hash: String, 
     salt: String,
     categories: [String]
+    // posts: []
 });
 
 UserSchema.methods.setPassword = function(password) {

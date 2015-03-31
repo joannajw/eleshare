@@ -7,7 +7,7 @@ var PostSchema = new mongoose.Schema({
   description: String, 
   upvotes: {type: Number, default: 0},
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-  categoies: [String]
+  categories: [String]
 });
 
 PostSchema.methods.upvote = function(callBack) {
@@ -16,9 +16,10 @@ PostSchema.methods.upvote = function(callBack) {
 };
 
 PostSchema.methods.addCategory = function(category, callBack) {
-    this.categoies.push(category); 
+    this.categories.push(category); 
     this.save(callBack);
 }
 
-mongoose.model('Post', PostSchema);
+var Post = mongoose.model('Post', PostSchema);
+// Post.remove({}, function(){});
 
